@@ -17,5 +17,8 @@ model Mahasiswa {
   program     String
   username    String   @unique
   password    String
-  createdAt   DateTime @default(now())
+  isVerified        Boolean  @default(false) // Status verifikasi
+  verificationToken String?  @unique         // Kode unik untuk link verifikasi
+  
+  createdAt DateTime @default(now())
 }

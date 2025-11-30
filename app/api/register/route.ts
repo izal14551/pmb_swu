@@ -1,28 +1,15 @@
 import { NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
-import { PrismaPg } from "@prisma/adapter-pg";
-import { Pool } from "pg";
+import crypto from "crypto"; // Library bawaan Node.js untuk buat token acak
+import { sendVerificationEmail } from "@/lib/mail"; // Import fungsi yang kita buat tadi
 
-const connectionString = `${process.env.DATABASE_URL}`;
-
-// Setup connection pool dan adapter
-const pool = new Pool({ connectionString });
-const adapter = new PrismaPg(pool);
-const prisma = new PrismaClient({ adapter });
+const prisma = new PrismaClient();
 
 export async function POST(request: Request) {
   try {
     const data = await request.json();
 
-    // Validasi sederhana (opsional, sebaiknya gunakan Zod)
-    if (!data.email || !data.username || !data.password) {
-      return NextResponse.json(
-        { success: false, message: "Data tidak lengkap" },
-        { status: 400 }
-      );
-    }
-
-    // Cek apakah email/username sudah ada
+    // 1. Cek User Ada atau Tidak
     const existingUser = await prisma.mahasiswa.findFirst({
       where: {
         OR: [{ email: data.email }, { username: data.username }]
@@ -36,7 +23,10 @@ export async function POST(request: Request) {
       );
     }
 
-    // Simpan ke Database
+    // 2. Buat Token Verifikasi Unik
+    const verificationToken = crypto.randomBytes(32).toString("hex");
+
+    // 3. Simpan User ke Database (Status isVerified = false)
     const newMahasiswa = await prisma.mahasiswa.create({
       data: {
         firstName: data.firstName,
@@ -46,14 +36,19 @@ export async function POST(request: Request) {
         school: data.school,
         program: data.program,
         username: data.username,
-        password: data.password // Catatan: Sebaiknya di-hash menggunakan bcrypt/argon2
+        password: data.password, // Ingat: Sebaiknya di-hash dulu!
+        isVerified: false, // Default belum aktif
+        verificationToken: verificationToken
       }
     });
 
+    // 4. Kirim Email Verifikasi
+    await sendVerificationEmail(data.email, verificationToken, data.firstName);
+
     return NextResponse.json({
       success: true,
-      message: "Pendaftaran berhasil!",
-      data: newMahasiswa
+      message: "Pendaftaran berhasil! Silakan cek email Anda untuk verifikasi.",
+      data: { id: newMahasiswa.id, email: newMahasiswa.email }
     });
   } catch (error) {
     console.error("Error registration:", error);
