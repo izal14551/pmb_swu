@@ -45,13 +45,14 @@ export function Header() {
               </Link>
             ))}
           </nav>
-
           <div className="hidden md:flex items-center gap-4">
+            <Link href="/login">
+              <Button variant="outline">Masuk</Button>
+            </Link>
             <Link href="#daftar">
               <Button>Daftar Sekarang</Button>
             </Link>
           </div>
-
           <button
             className="md:hidden"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -78,6 +79,11 @@ export function Header() {
                   {item.label}
                 </Link>
               ))}
+              <Link href="/login" onClick={() => setMobileMenuOpen(false)}>
+                <Button variant="outline" className="w-full">
+                  Masuk
+                </Button>
+              </Link>
               <Link href="#daftar" onClick={() => setMobileMenuOpen(false)}>
                 <Button className="w-full">Daftar Sekarang</Button>
               </Link>

@@ -29,7 +29,7 @@ export function HeroSection() {
 
           {/* Tagline */}
           <p className="text-primary-foreground/90 text-lg md:text-xl italic mb-6">
-            "Kerja di Jepang? Mulailah dengan STMIK Widya Utama!"
+            "Mau Keluar Negeri? Mulailah dengan STMIK Widya Utama!"
           </p>
 
           {/* PMB Info */}

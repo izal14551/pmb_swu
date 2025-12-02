@@ -19,6 +19,15 @@ model Mahasiswa {
   password    String
   isVerified        Boolean  @default(false) // Status verifikasi
   verificationToken String?  @unique         // Kode unik untuk link verifikasi
-  
   createdAt DateTime @default(now())
+  documents     Document[]
+}
+
+model Document {
+  id          Int        @id @default(autoincrement())
+  name        String
+  filePath    String
+  createdAt   DateTime   @default(now())
+  mahasiswa   Mahasiswa  @relation(fields: [mahasiswaId], references: [id])
+  mahasiswaId Int
 }

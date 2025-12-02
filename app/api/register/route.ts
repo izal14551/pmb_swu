@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 import crypto from "crypto"; // Library bawaan Node.js untuk buat token acak
 import { sendVerificationEmail } from "@/lib/mail"; // Import fungsi yang kita buat tadi
+import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
 
@@ -25,6 +26,7 @@ export async function POST(request: Request) {
 
     // 2. Buat Token Verifikasi Unik
     const verificationToken = crypto.randomBytes(32).toString("hex");
+    const hashedPassword = await bcrypt.hash(data.password, 10);
 
     // 3. Simpan User ke Database (Status isVerified = false)
     const newMahasiswa = await prisma.mahasiswa.create({
@@ -36,8 +38,8 @@ export async function POST(request: Request) {
         school: data.school,
         program: data.program,
         username: data.username,
-        password: data.password, // Ingat: Sebaiknya di-hash dulu!
-        isVerified: false, // Default belum aktif
+        password: hashedPassword,
+        isVerified: false,
         verificationToken: verificationToken
       }
     });
