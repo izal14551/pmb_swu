@@ -20,6 +20,21 @@ model Mahasiswa {
   isVerified        Boolean  @default(false) // Status verifikasi
   verificationToken String?  @unique         // Kode unik untuk link verifikasi
   createdAt DateTime @default(now())
+  placeOfBirth    String?
+  dateOfBirth     DateTime?
+  rt              String?
+  rw              String?
+  village         String?
+  subDistrict     String?
+  district        String?
+  province        String?
+  fullAddress     String?
+  gender          String?
+  maritalStatus   String?
+  religion        String?
+  parentName      String?
+  parentAddress   String?
+  classType       String?
   documents     Document[]
 }
 

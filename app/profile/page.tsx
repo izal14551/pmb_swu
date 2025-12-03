@@ -1,103 +1,295 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
+import {
+  UserIcon,
+  AcademicCapIcon,
+  BriefcaseIcon,
+  RectangleStackIcon,
+  BuildingOffice2Icon,
+  TrophyIcon,
+  LanguageIcon,
+  MapPinIcon,
+  PhoneIcon,
+  EnvelopeIcon,
+  PencilSquareIcon,
+  ArrowPathIcon
+} from "@heroicons/react/24/outline";
 
-interface Document {
-  id: number;
-  name: string;
-  filePath: string;
-}
-
+// Tipe Mahasiswa sesuai schema
 interface Mahasiswa {
   id: number;
   firstName: string;
   lastName: string;
   email: string;
-  phone: string;
-  program: string;
-  documents?: Document[];
+  phone?: string | null;
+  fullAddress?: string | null;
+  placeOfBirth?: string | null;
+  dateOfBirth?: string | null;
+  rt?: string | null;
+  rw?: string | null;
+  village?: string | null;
+  subDistrict?: string | null;
+  district?: string | null;
+  province?: string | null;
+  gender?: string | null;
+  maritalStatus?: string | null;
+  religion?: string | null;
+  parentName?: string | null;
+  parentAddress?: string | null;
+  classType?: string | null;
 }
 
 export default function ProfilePage() {
   const [user, setUser] = useState<Mahasiswa | null>(null);
-  const [file, setFile] = useState<File | null>(null);
-  const [message, setMessage] = useState("");
 
   useEffect(() => {
+    // ambil data user dari localStorage lalu fetch ke API
     const saved = localStorage.getItem("user");
     if (saved) {
-      const u: Mahasiswa = JSON.parse(saved);
+      const u = JSON.parse(saved);
       fetch(`/api/profile?id=${u.id}`)
         .then((res) => res.json())
         .then((data) => {
-          if (data.success) setUser(data.user);
+          if (data.success) {
+            setUser(data.user);
+          }
         });
     }
   }, []);
 
-  const handleUpload = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!file || !user) return;
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("userId", String(user.id));
-    const res = await fetch("/api/profile", { method: "POST", body: formData });
-    const data = await res.json();
-    if (data.success) {
-      setMessage("Upload berhasil");
-      setUser({
-        ...user,
-        documents: [...(user.documents || []), data.document]
-      });
-    } else {
-      setMessage(data.message);
-    }
+  if (!user) {
+    return (
+      <main className="min-h-screen flex items-center justify-center">
+        <p>Memuat profil…</p>
+      </main>
+    );
+  }
+
+  // Format tanggal lahir
+  const formatDate = (iso?: string | null) => {
+    if (!iso) return "-";
+    const d = new Date(iso);
+    return d.toLocaleDateString("id-ID", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric"
+    });
   };
 
   return (
-    <main className="container mx-auto max-w-2xl py-20">
-      <h1 className="text-3xl font-bold mb-6">Profil Saya</h1>
-      {user ? (
-        <>
-          <p>
-            Nama: {user.firstName} {user.lastName}
-          </p>
-          <p>Email: {user.email}</p>
-          <p>Telepon: {user.phone}</p>
-          <p>Program: {user.program}</p>
+    <main className="min-h-screen bg-gray-100 pb-10">
+      {/* Hero section dengan tinggi tetap */}
+      <div className="relative w-full h-56 bg-blue-500">
+        <div
+          className="absolute inset-0 bg-cover bg-center opacity-20"
+          style={{ backgroundImage: "url('/images/SWU.png')" }}
+        />
+      </div>
 
-          <h2 className="mt-6 text-xl font-semibold">Dokumen</h2>
-          <ul className="list-disc pl-5">
-            {user.documents?.map((doc) => (
-              <li key={doc.id}>
-                <a
-                  href={doc.filePath}
-                  target="_blank"
-                  className="text-blue-600 underline"
-                >
-                  {doc.name}
-                </a>
-              </li>
-            ))}
-          </ul>
+      <div className="max-w-6xl mx-auto px-4 -mt-14 relative z-10">
+        {/* Kartu profil */}
+        <div className="bg-white rounded-xl shadow-md p-6 flex flex-col md:flex-row md:items-center md:justify-between">
+          {/* Info user */}
+          <div className="flex items-center space-x-4">
+            {/* Foto profil: ganti src dengan foto user jika tersedia */}
 
-          <form onSubmit={handleUpload} className="mt-4 space-y-2">
-            <input
-              type="file"
-              onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-            />
-            <button
-              type="submit"
-              className="bg-primary text-white px-4 py-2 rounded-md"
-            >
-              Upload Dokumen
+            <div>
+              <h2 className="text-xl font-semibold">
+                {user.firstName} {user.lastName}
+              </h2>
+              <div className="text-sm text-gray-600 flex flex-wrap gap-4 mt-1">
+                <span className="flex items-center gap-1">
+                  <MapPinIcon className="w-4 h-4" /> {user.fullAddress ?? "-"}
+                </span>
+                <span className="flex items-center gap-1">
+                  <PhoneIcon className="w-4 h-4" /> {user.phone ?? "-"}
+                </span>
+                <span className="flex items-center gap-1">
+                  <EnvelopeIcon className="w-4 h-4" /> {user.email}
+                </span>
+              </div>
+            </div>
+          </div>
+          {/* Tombol aksi */}
+          <div className="flex mt-4 md:mt-0 space-x-3">
+            <button className="flex items-center px-4 py-2 bg-teal-500 text-white rounded-md hover:bg-teal-600 transition">
+              <ArrowPathIcon className="w-4 h-4 mr-2" />
+              Sinkron Data
             </button>
-          </form>
-          {message && <p className="mt-2">{message}</p>}
-        </>
-      ) : (
-        <p>Memuat profil…</p>
-      )}
+            <button className="flex items-center px-4 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600 transition">
+              <PencilSquareIcon className="w-4 h-4 mr-2" />
+              Edit Data
+            </button>
+          </div>
+        </div>
+
+        {/* Layout konten */}
+        <div className="max-w-6xl mx-auto px-4 mt-6 flex flex-col md:flex-row gap-4">
+          {/* Sidebar menu */}
+          <aside className="md:w-64 bg-white rounded-xl shadow-md">
+            <nav className="divide-y">
+              <SidebarItem
+                active
+                icon={<UserIcon className="w-5 h-5" />}
+                label="Biodata"
+              />
+              <SidebarItem
+                icon={<AcademicCapIcon className="w-5 h-5" />}
+                label="Pendidikan"
+              />
+              <SidebarItem
+                icon={<RectangleStackIcon className="w-5 h-5" />}
+                label="Pelatihan"
+              />
+              <SidebarItem
+                icon={<BriefcaseIcon className="w-5 h-5" />}
+                label="Sertifikasi"
+              />
+              <SidebarItem
+                icon={<BuildingOffice2Icon className="w-5 h-5" />}
+                label="Pengalaman"
+              />
+              <SidebarItem
+                icon={<TrophyIcon className="w-5 h-5" />}
+                label="Pencapaian"
+              />
+              <SidebarItem
+                icon={<LanguageIcon className="w-5 h-5" />}
+                label="Bahasa"
+              />
+            </nav>
+          </aside>
+
+          {/* Konten utama */}
+          <section className="flex-1 bg-white rounded-xl shadow-md p-6">
+            {/* Biodata */}
+            <div className="space-y-4">
+              <ProfileRow
+                icon={<UserIcon className="w-6 h-6 text-green-500" />}
+                label="Nama Lengkap"
+                value={`${user.firstName} ${user.lastName}`}
+              />
+              <ProfileRow
+                icon={<UserIcon className="w-6 h-6 text-green-500" />}
+                label="Jenis Kelamin"
+                value={user.gender ?? "-"}
+              />
+              <ProfileRow
+                icon={<EnvelopeIcon className="w-6 h-6 text-green-500" />}
+                label="Email"
+                value={user.email}
+              />
+              <ProfileRow
+                icon={<PhoneIcon className="w-6 h-6 text-green-500" />}
+                label="Telepon"
+                value={user.phone ?? "-"}
+              />
+              <ProfileRow
+                icon={<MapPinIcon className="w-6 h-6 text-green-500" />}
+                label="Alamat Lengkap"
+                value={user.fullAddress ?? "-"}
+              />
+              <ProfileRow
+                icon={<MapPinIcon className="w-6 h-6 text-green-500" />}
+                label="RT/RW"
+                value={`${user.rt ?? "-"}/${user.rw ?? "-"}`}
+              />
+              <ProfileRow
+                icon={<MapPinIcon className="w-6 h-6 text-green-500" />}
+                label="Desa"
+                value={user.village ?? "-"}
+              />
+              <ProfileRow
+                icon={<MapPinIcon className="w-6 h-6 text-green-500" />}
+                label="Kecamatan"
+                value={user.subDistrict ?? "-"}
+              />
+              <ProfileRow
+                icon={<MapPinIcon className="w-6 h-6 text-green-500" />}
+                label="Kabupaten"
+                value={user.district ?? "-"}
+              />
+              <ProfileRow
+                icon={<MapPinIcon className="w-6 h-6 text-green-500" />}
+                label="Provinsi"
+                value={user.province ?? "-"}
+              />
+              <ProfileRow
+                icon={<UserIcon className="w-6 h-6 text-green-500" />}
+                label="Status Pernikahan"
+                value={user.maritalStatus ?? "-"}
+              />
+              <ProfileRow
+                icon={<UserIcon className="w-6 h-6 text-green-500" />}
+                label="Agama"
+                value={user.religion ?? "-"}
+              />
+              <ProfileRow
+                icon={<UserIcon className="w-6 h-6 text-green-500" />}
+                label="Nama Orang Tua/Wali"
+                value={user.parentName ?? "-"}
+              />
+              <ProfileRow
+                icon={<UserIcon className="w-6 h-6 text-green-500" />}
+                label="Alamat Orang Tua/Wali"
+                value={user.parentAddress ?? "-"}
+              />
+              <ProfileRow
+                icon={<AcademicCapIcon className="w-6 h-6 text-green-500" />}
+                label="Kelas Pilihan"
+                value={user.classType ?? "-"}
+              />
+            </div>
+          </section>
+        </div>
+      </div>
     </main>
+  );
+}
+
+// Komponen sidebar item dengan parameter aktif
+function SidebarItem({
+  icon,
+  label,
+  active
+}: {
+  icon: React.ReactNode;
+  label: string;
+  active?: boolean;
+}) {
+  return (
+    <div
+      className={`flex items-center px-4 py-3 cursor-pointer gap-3 ${
+        active
+          ? "text-blue-600 border-r-4 border-blue-600 font-semibold bg-blue-50"
+          : "hover:bg-gray-100"
+      }`}
+    >
+      {icon}
+      <span>{label}</span>
+    </div>
+  );
+}
+
+// Komponen baris profil
+function ProfileRow({
+  icon,
+  label,
+  value
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="flex items-start gap-4 border rounded-md p-4">
+      <div>{icon}</div>
+      <div>
+        <p className="text-sm text-gray-500">{label}</p>
+        <p className="font-medium">{value}</p>
+      </div>
+    </div>
   );
 }

@@ -30,53 +30,52 @@ export default function LoginPage() {
   };
 
   return (
-    <main className="container mx-auto max-w-md py-20">
-      <h1 className="text-3xl font-bold mb-6">Login Calon Mahasiswa</h1>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label className="block mb-1">Email atau Username</label>
-          <input
-            type="text"
-            value={identifier}
-            onChange={(e) => setIdentifier(e.target.value)}
-            className="w-full border px-3 py-2 rounded-md bg-white"
-          />
+    <main className="min-h-screen flex items-center justify-center px-4 py-12">
+      <div className="w-full max-w-md bg-white shadow-md rounded-lg p-6">
+        <h1 className="text-2xl md:text-3xl font-bold mb-6">
+          Login Calon Mahasiswa
+        </h1>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block mb-1">Email atau Username</label>
+            <input
+              type="text"
+              value={identifier}
+              onChange={(e) => setIdentifier(e.target.value)}
+              className="w-full border px-3 py-2 rounded-md bg-white"
+            />
+          </div>
+          <div>
+            <label className="block mb-1">Password</label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full border px-3 py-2 rounded-md bg-white"
+            />
+          </div>
+          {error && <p className="text-red-600">{error}</p>}
+
+          <button
+            type="submit"
+            className="w-full bg-primary text-white px-4 py-2 rounded-md hover:bg-primary/80 transition"
+          >
+            Login
+          </button>
+          <button
+            type="button"
+            onClick={handleBack}
+            className="w-full bg-white text-primary border border-primary px-4 py-2 rounded-md hover:bg-primary hover:text-white transition"
+          >
+            Kembali
+          </button>
+        </form>
+        <div className="mt-4 text-sm text-center">
+          Belum punya akun?{" "}
+          <a href="/#daftar" className="text-primary underline">
+            Daftar terlebih dahulu
+          </a>
         </div>
-        <div>
-          <label className="block mb-1">Password</label>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full border px-3 py-2 rounded-md bg-white"
-          />
-        </div>
-        {error && <p className="text-red-600">{error}</p>}
-
-        {/* tombol login */}
-        <button
-          type="submit"
-          className="bg-primary text-white px-4 py-2 rounded-md w-full border border-primary hover:bg-white hover:text-primary transition"
-        >
-          Login
-        </button>
-
-        {/* tombol kembali sebagai button */}
-        <button
-          type="button"
-          onClick={handleBack}
-          className="bg-white text-primary px-4 py-2 rounded-md w-full border border-primary hover:bg-primary hover:text-white transition"
-        >
-          Kembali
-        </button>
-      </form>
-
-      {/* pesan daftar */}
-      <div className="mt-4 text-sm text-center">
-        Belum punya akun?{" "}
-        <a href="/#daftar" className="text-primary underline">
-          Daftar terlebih dahulu
-        </a>
       </div>
     </main>
   );

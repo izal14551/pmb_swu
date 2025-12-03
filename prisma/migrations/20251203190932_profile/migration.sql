@@ -1,0 +1,16 @@
+-- AlterTable
+ALTER TABLE "Mahasiswa" ADD COLUMN     "classType" TEXT,
+ADD COLUMN     "dateOfBirth" TIMESTAMP(3),
+ADD COLUMN     "district" TEXT,
+ADD COLUMN     "fullAddress" TEXT,
+ADD COLUMN     "gender" TEXT,
+ADD COLUMN     "maritalStatus" TEXT,
+ADD COLUMN     "parentAddress" TEXT,
+ADD COLUMN     "parentName" TEXT,
+ADD COLUMN     "placeOfBirth" TEXT,
+ADD COLUMN     "province" TEXT,
+ADD COLUMN     "religion" TEXT,
+ADD COLUMN     "rt" TEXT,
+ADD COLUMN     "rw" TEXT,
+ADD COLUMN     "subDistrict" TEXT,
+ADD COLUMN     "village" TEXT;

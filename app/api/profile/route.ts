@@ -59,3 +59,31 @@ export async function POST(request: Request) {
 
   return NextResponse.json({ success: true, document: doc }, { status: 201 });
 }
+
+export async function PUT(request: Request) {
+  try {
+    const data = await request.json();
+    const { id, documents, ...fields } = data; // documents diabaikan
+    if (!id) {
+      return NextResponse.json(
+        { success: false, message: "ID diperlukan" },
+        { status: 400 }
+      );
+    }
+    if (fields.dateOfBirth) {
+      fields.dateOfBirth = new Date(fields.dateOfBirth);
+    }
+    const updated = await prisma.mahasiswa.update({
+      where: { id: Number(id) },
+      data: fields
+    });
+    const { password, verificationToken, ...safeUser } = updated;
+    return NextResponse.json({ success: true, user: safeUser });
+  } catch (error) {
+    console.error("Error updating profile:", error);
+    return NextResponse.json(
+      { success: false, message: "Gagal memperbarui data" },
+      { status: 500 }
+    );
+  }
+}
