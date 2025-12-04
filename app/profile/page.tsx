@@ -14,7 +14,8 @@ import {
   PhoneIcon,
   EnvelopeIcon,
   PencilSquareIcon,
-  ArrowPathIcon
+  ArrowPathIcon,
+  FolderIcon
 } from "@heroicons/react/24/outline";
 
 // Tipe Mahasiswa sesuai schema
@@ -43,6 +44,20 @@ interface Mahasiswa {
 
 export default function ProfilePage() {
   const [user, setUser] = useState<Mahasiswa | null>(null);
+  const [activeTab, setActiveTab] = useState<"biodata" | "dokumen">("biodata");
+  const [docs, setDocs] = useState({
+    kk: null as File | null,
+    ktp: null as File | null,
+    nisn: null as File | null,
+    skl: null as File | null,
+    rapor: null as File | null,
+    penghasilan: null as File | null,
+    sktm: null as File | null,
+    kip: null as File | null,
+    kks_pkh: null as File | null,
+    foto_rumah: null as File | null,
+    surat_pernyataan: null as File | null
+  });
 
   useEffect(() => {
     // ambil data user dari localStorage lalu fetch ke API
@@ -59,14 +74,6 @@ export default function ProfilePage() {
     }
   }, []);
 
-  if (!user) {
-    return (
-      <main className="min-h-screen flex items-center justify-center">
-        <p>Memuat profil…</p>
-      </main>
-    );
-  }
-
   // Format tanggal lahir
   const formatDate = (iso?: string | null) => {
     if (!iso) return "-";
@@ -77,6 +84,64 @@ export default function ProfilePage() {
       year: "numeric"
     });
   };
+
+  // handle perubahan file
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, files } = e.target;
+    if (files && files[0]) {
+      setDocs((prev) => ({ ...prev, [name]: files[0] }));
+    }
+  };
+
+  // kirim semua dokumen sekaligus
+  const handleUploadDocs = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const formData = new FormData();
+    formData.append("userId", String(user?.id));
+    Object.entries(docs).forEach(([key, file]) => {
+      if (file) formData.append(key, file);
+    });
+    const res = await fetch("/api/documents", {
+      method: "POST",
+      body: formData
+    });
+    const result = await res.json();
+    if (result.success) {
+      alert("Dokumen berhasil diupload!");
+      // refresh dokumen user jika perlu
+    } else {
+      alert("Gagal mengupload dokumen");
+    }
+  };
+  if (!user) {
+    return (
+      <main className="min-h-screen flex items-center justify-center">
+        <p>Memuat profil…</p>
+      </main>
+    );
+  }
+
+  function DocumentInput({
+    label,
+    name,
+    onChange
+  }: {
+    label: string;
+    name: string;
+    onChange: any;
+  }) {
+    return (
+      <div className="flex flex-col">
+        <label className="text-sm font-medium mb-1">{label}</label>
+        <input
+          type="file"
+          name={name}
+          onChange={onChange}
+          className="border px-3 py-2 rounded-md"
+        />
+      </div>
+    );
+  }
 
   return (
     <main className="min-h-screen bg-gray-100 pb-10">
@@ -129,119 +194,179 @@ export default function ProfilePage() {
         <div className="max-w-6xl mx-auto px-4 mt-6 flex flex-col md:flex-row gap-4">
           {/* Sidebar menu */}
           <aside className="md:w-64 bg-white rounded-xl shadow-md">
-            <nav className="divide-y">
-              <SidebarItem
-                active
-                icon={<UserIcon className="w-5 h-5" />}
-                label="Biodata"
-              />
-              <SidebarItem
-                icon={<AcademicCapIcon className="w-5 h-5" />}
-                label="Pendidikan"
-              />
-              <SidebarItem
-                icon={<RectangleStackIcon className="w-5 h-5" />}
-                label="Pelatihan"
-              />
-              <SidebarItem
-                icon={<BriefcaseIcon className="w-5 h-5" />}
-                label="Sertifikasi"
-              />
-              <SidebarItem
-                icon={<BuildingOffice2Icon className="w-5 h-5" />}
-                label="Pengalaman"
-              />
-              <SidebarItem
-                icon={<TrophyIcon className="w-5 h-5" />}
-                label="Pencapaian"
-              />
-              <SidebarItem
-                icon={<LanguageIcon className="w-5 h-5" />}
-                label="Bahasa"
-              />
+            <nav>
+              <div
+                onClick={() => setActiveTab("biodata")}
+                className={`flex items-center px-4 py-3 cursor-pointer gap-3 ${
+                  activeTab === "biodata"
+                    ? "text-blue-600 border-r-4 border-blue-600 font-semibold bg-blue-50"
+                    : "hover:bg-gray-100"
+                }`}
+              >
+                <UserIcon className="w-5 h-5" />
+                <span>Biodata</span>
+              </div>
+              <div
+                onClick={() => setActiveTab("dokumen")}
+                className={`flex items-center px-4 py-3 cursor-pointer gap-3 ${
+                  activeTab === "dokumen"
+                    ? "text-blue-600 border-r-4 border-blue-600 font-semibold bg-blue-50"
+                    : "hover:bg-gray-100"
+                }`}
+              >
+                <FolderIcon className="w-5 h-5" />
+                <span>Dokumen</span>
+              </div>
             </nav>
           </aside>
 
           {/* Konten utama */}
           <section className="flex-1 bg-white rounded-xl shadow-md p-6">
             {/* Biodata */}
-            <div className="space-y-4">
-              <ProfileRow
-                icon={<UserIcon className="w-6 h-6 text-green-500" />}
-                label="Nama Lengkap"
-                value={`${user.firstName} ${user.lastName}`}
-              />
-              <ProfileRow
-                icon={<UserIcon className="w-6 h-6 text-green-500" />}
-                label="Jenis Kelamin"
-                value={user.gender ?? "-"}
-              />
-              <ProfileRow
-                icon={<EnvelopeIcon className="w-6 h-6 text-green-500" />}
-                label="Email"
-                value={user.email}
-              />
-              <ProfileRow
-                icon={<PhoneIcon className="w-6 h-6 text-green-500" />}
-                label="Telepon"
-                value={user.phone ?? "-"}
-              />
-              <ProfileRow
-                icon={<MapPinIcon className="w-6 h-6 text-green-500" />}
-                label="Alamat Lengkap"
-                value={user.fullAddress ?? "-"}
-              />
-              <ProfileRow
-                icon={<MapPinIcon className="w-6 h-6 text-green-500" />}
-                label="RT/RW"
-                value={`${user.rt ?? "-"}/${user.rw ?? "-"}`}
-              />
-              <ProfileRow
-                icon={<MapPinIcon className="w-6 h-6 text-green-500" />}
-                label="Desa"
-                value={user.village ?? "-"}
-              />
-              <ProfileRow
-                icon={<MapPinIcon className="w-6 h-6 text-green-500" />}
-                label="Kecamatan"
-                value={user.subDistrict ?? "-"}
-              />
-              <ProfileRow
-                icon={<MapPinIcon className="w-6 h-6 text-green-500" />}
-                label="Kabupaten"
-                value={user.district ?? "-"}
-              />
-              <ProfileRow
-                icon={<MapPinIcon className="w-6 h-6 text-green-500" />}
-                label="Provinsi"
-                value={user.province ?? "-"}
-              />
-              <ProfileRow
-                icon={<UserIcon className="w-6 h-6 text-green-500" />}
-                label="Status Pernikahan"
-                value={user.maritalStatus ?? "-"}
-              />
-              <ProfileRow
-                icon={<UserIcon className="w-6 h-6 text-green-500" />}
-                label="Agama"
-                value={user.religion ?? "-"}
-              />
-              <ProfileRow
-                icon={<UserIcon className="w-6 h-6 text-green-500" />}
-                label="Nama Orang Tua/Wali"
-                value={user.parentName ?? "-"}
-              />
-              <ProfileRow
-                icon={<UserIcon className="w-6 h-6 text-green-500" />}
-                label="Alamat Orang Tua/Wali"
-                value={user.parentAddress ?? "-"}
-              />
-              <ProfileRow
-                icon={<AcademicCapIcon className="w-6 h-6 text-green-500" />}
-                label="Kelas Pilihan"
-                value={user.classType ?? "-"}
-              />
-            </div>
+            {activeTab === "biodata" && (
+              <div className="space-y-4">
+                <ProfileRow
+                  icon={<UserIcon className="w-6 h-6 text-green-500" />}
+                  label="Nama Lengkap"
+                  value={`${user.firstName} ${user.lastName}`}
+                />
+                <ProfileRow
+                  icon={<UserIcon className="w-6 h-6 text-green-500" />}
+                  label="Jenis Kelamin"
+                  value={user.gender ?? "-"}
+                />
+                <ProfileRow
+                  icon={<EnvelopeIcon className="w-6 h-6 text-green-500" />}
+                  label="Email"
+                  value={user.email}
+                />
+                <ProfileRow
+                  icon={<PhoneIcon className="w-6 h-6 text-green-500" />}
+                  label="Telepon"
+                  value={user.phone ?? "-"}
+                />
+                <ProfileRow
+                  icon={<MapPinIcon className="w-6 h-6 text-green-500" />}
+                  label="Alamat Lengkap"
+                  value={user.fullAddress ?? "-"}
+                />
+                <ProfileRow
+                  icon={<MapPinIcon className="w-6 h-6 text-green-500" />}
+                  label="RT/RW"
+                  value={`${user.rt ?? "-"}/${user.rw ?? "-"}`}
+                />
+                <ProfileRow
+                  icon={<MapPinIcon className="w-6 h-6 text-green-500" />}
+                  label="Desa"
+                  value={user.village ?? "-"}
+                />
+                <ProfileRow
+                  icon={<MapPinIcon className="w-6 h-6 text-green-500" />}
+                  label="Kecamatan"
+                  value={user.subDistrict ?? "-"}
+                />
+                <ProfileRow
+                  icon={<MapPinIcon className="w-6 h-6 text-green-500" />}
+                  label="Kabupaten"
+                  value={user.district ?? "-"}
+                />
+                <ProfileRow
+                  icon={<MapPinIcon className="w-6 h-6 text-green-500" />}
+                  label="Provinsi"
+                  value={user.province ?? "-"}
+                />
+                <ProfileRow
+                  icon={<UserIcon className="w-6 h-6 text-green-500" />}
+                  label="Status Pernikahan"
+                  value={user.maritalStatus ?? "-"}
+                />
+                <ProfileRow
+                  icon={<UserIcon className="w-6 h-6 text-green-500" />}
+                  label="Agama"
+                  value={user.religion ?? "-"}
+                />
+                <ProfileRow
+                  icon={<UserIcon className="w-6 h-6 text-green-500" />}
+                  label="Nama Orang Tua/Wali"
+                  value={user.parentName ?? "-"}
+                />
+                <ProfileRow
+                  icon={<UserIcon className="w-6 h-6 text-green-500" />}
+                  label="Alamat Orang Tua/Wali"
+                  value={user.parentAddress ?? "-"}
+                />
+                <ProfileRow
+                  icon={<AcademicCapIcon className="w-6 h-6 text-green-500" />}
+                  label="Kelas Pilihan"
+                  value={user.classType ?? "-"}
+                />
+              </div>
+            )}
+            {activeTab === "dokumen" && (
+              <form onSubmit={handleUploadDocs} className="space-y-4">
+                <DocumentInput
+                  label="Kartu Keluarga (KK)"
+                  name="kk"
+                  onChange={handleFileChange}
+                />
+                <DocumentInput
+                  label="Kartu Tanda Penduduk (KTP)"
+                  name="ktp"
+                  onChange={handleFileChange}
+                />
+                <DocumentInput
+                  label="Nomor Induk Siswa Nasional (NISN)"
+                  name="nisn"
+                  onChange={handleFileChange}
+                />
+                <DocumentInput
+                  label="Ijazah / SKL"
+                  name="skl"
+                  onChange={handleFileChange}
+                />
+                <DocumentInput
+                  label="Rapor (sem. 1–5)"
+                  name="rapor"
+                  onChange={handleFileChange}
+                />
+                <DocumentInput
+                  label="Surat Keterangan Penghasilan Orang Tua"
+                  name="penghasilan"
+                  onChange={handleFileChange}
+                />
+                <DocumentInput
+                  label="Surat Keterangan Tidak Mampu (SKTM)"
+                  name="sktm"
+                  onChange={handleFileChange}
+                />
+                <DocumentInput
+                  label="Kartu Indonesia Pintar (KIP)"
+                  name="kip"
+                  onChange={handleFileChange}
+                />
+                <DocumentInput
+                  label="Kartu Keluarga Sejahtera (KKS) / PKH"
+                  name="kks_pkh"
+                  onChange={handleFileChange}
+                />
+                <DocumentInput
+                  label="Foto Rumah (depan & dalam)"
+                  name="foto_rumah"
+                  onChange={handleFileChange}
+                />
+                <DocumentInput
+                  label="Surat Pernyataan"
+                  name="surat_pernyataan"
+                  onChange={handleFileChange}
+                />
+                <button
+                  type="submit"
+                  className="bg-primary text-white px-4 py-2 rounded-md"
+                >
+                  Upload Semua Dokumen
+                </button>
+              </form>
+            )}
           </section>
         </div>
       </div>
