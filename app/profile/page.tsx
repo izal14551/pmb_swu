@@ -59,6 +59,35 @@ export default function ProfilePage() {
     surat_pernyataan: null as File | null
   });
 
+  const documentTypes: { key: keyof typeof docs; label: string }[] = [
+    { key: "kk", label: "Kartu Keluarga (KK)" },
+    { key: "ktp", label: "Kartu Tanda Penduduk (KTP)" },
+    { key: "nisn", label: "Nomor Induk Siswa Nasional (NISN)" },
+    { key: "skl", label: "Surat Keterangan Lulus (SKL)" },
+    { key: "rapor", label: "Rapor Semester 1-5" },
+    { key: "penghasilan", label: "Surat Keterangan Penghasilan Orang Tua" },
+    { key: "sktm", label: "Surat Keterangan Tidak Mampu" },
+    { key: "kip", label: "Kartu Indonesia Pintar" },
+    { key: "kks_pkh", label: "Kartu Keluarga Sejahtera (KKS)/PKH" },
+    { key: "foto_rumah", label: "Foto Rumah" },
+    { key: "surat_pernyataan", label: "Surat pernyataan" }
+  ];
+
+  // fungsi menghapus dokumen
+  const handleDeleteDoc = async (docId: number) => {
+    if (!user) return;
+    const res = await fetch(`/api/documents/${docId}`, { method: "DELETE" });
+    if (res.ok) {
+      // perbarui state user dengan menghapus dokumen tersebut
+      setUser({
+        ...user,
+        documents: user.documents.filter((d) => d.id !== docId)
+      });
+    } else {
+      alert("Gagal menghapus dokumen");
+    }
+  };
+
   useEffect(() => {
     // ambil data user dari localStorage lalu fetch ke API
     const saved = localStorage.getItem("user");
@@ -93,6 +122,10 @@ export default function ProfilePage() {
     }
   };
 
+  const removeFile = (key: keyof typeof docs) => {
+    setDocs((prev) => ({ ...prev, [key]: null }));
+  };
+
   // kirim semua dokumen sekaligus
   const handleUploadDocs = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -108,7 +141,6 @@ export default function ProfilePage() {
     const result = await res.json();
     if (result.success) {
       alert("Dokumen berhasil diupload!");
-      // refresh dokumen user jika perlu
     } else {
       alert("Gagal mengupload dokumen");
     }
@@ -123,22 +155,53 @@ export default function ProfilePage() {
 
   function DocumentInput({
     label,
-    name,
-    onChange
+    name
   }: {
     label: string;
-    name: string;
-    onChange: any;
+    name: keyof typeof docs;
   }) {
+    const file = docs[name];
+
     return (
-      <div className="flex flex-col">
-        <label className="text-sm font-medium mb-1">{label}</label>
-        <input
-          type="file"
-          name={name}
-          onChange={onChange}
-          className="border px-3 py-2 rounded-md"
-        />
+      <div className="flex flex-col gap-1">
+        <label className="text-sm font-medium">{label}</label>
+        {/* Kontainer file input dengan nama file + tombol pilih */}
+        <div className="flex items-center border rounded-md px-3 py-2 bg-gray-50">
+          {/* Teks nama file atau placeholder */}
+          <span className="flex-1 text-gray-700 truncate">
+            {file ? file.name : "Belum ada file dipilih"}
+          </span>
+          {/* Tombol pilih file di sisi kanan */}
+          <label className="ml-4 bg-primary text-white px-3 py-1 rounded-md cursor-pointer">
+            Pilih File
+            <input
+              type="file"
+              name={name}
+              onChange={handleFileChange}
+              className="hidden"
+            />
+          </label>
+        </div>
+        {/* Opsi lihat dan hapus */}
+        {file && (
+          <div className="mt-1 flex items-center gap-2 text-sm">
+            <a
+              href={URL.createObjectURL(file)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-600 underline"
+            >
+              Lihat
+            </a>
+            <button
+              type="button"
+              onClick={() => removeFile(name)}
+              className="text-red-600 hover:underline"
+            >
+              Hapus
+            </button>
+          </div>
+        )}
       </div>
     );
   }
@@ -304,60 +367,37 @@ export default function ProfilePage() {
             )}
             {activeTab === "dokumen" && (
               <form onSubmit={handleUploadDocs} className="space-y-4">
-                <DocumentInput
-                  label="Kartu Keluarga (KK)"
-                  name="kk"
-                  onChange={handleFileChange}
-                />
-                <DocumentInput
-                  label="Kartu Tanda Penduduk (KTP)"
-                  name="ktp"
-                  onChange={handleFileChange}
-                />
+                <DocumentInput label="Kartu Keluarga (KK)" name="kk" />
+                <DocumentInput label="Kartu Tanda Penduduk (KTP)" name="ktp" />
                 <DocumentInput
                   label="Nomor Induk Siswa Nasional (NISN)"
                   name="nisn"
-                  onChange={handleFileChange}
                 />
-                <DocumentInput
-                  label="Ijazah / SKL"
-                  name="skl"
-                  onChange={handleFileChange}
-                />
-                <DocumentInput
-                  label="Rapor (sem. 1–5)"
-                  name="rapor"
-                  onChange={handleFileChange}
-                />
+                <DocumentInput label="Ijazah / SKL" name="skl" />
+                <DocumentInput label="Rapor (sem. 1–5)" name="rapor" />
                 <DocumentInput
                   label="Surat Keterangan Penghasilan Orang Tua"
                   name="penghasilan"
-                  onChange={handleFileChange}
                 />
                 <DocumentInput
                   label="Surat Keterangan Tidak Mampu (SKTM)"
                   name="sktm"
-                  onChange={handleFileChange}
                 />
                 <DocumentInput
                   label="Kartu Indonesia Pintar (KIP)"
                   name="kip"
-                  onChange={handleFileChange}
                 />
                 <DocumentInput
                   label="Kartu Keluarga Sejahtera (KKS) / PKH"
                   name="kks_pkh"
-                  onChange={handleFileChange}
                 />
                 <DocumentInput
                   label="Foto Rumah (depan & dalam)"
                   name="foto_rumah"
-                  onChange={handleFileChange}
                 />
                 <DocumentInput
                   label="Surat Pernyataan"
                   name="surat_pernyataan"
-                  onChange={handleFileChange}
                 />
                 <button
                   type="submit"

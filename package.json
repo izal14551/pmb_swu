@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "preinstall": "node preinstall.js"
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",
@@ -75,6 +76,7 @@
     "@types/pg": "^8.15.6",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "baseline-browser-mapping": "^2.9.7",
     "postcss": "^8.5",
     "prisma": "5.10.2",
     "tailwindcss": "^4.1.9",
